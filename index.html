@@ -612,16 +612,30 @@ async function loadCycleStatus(){
     const rows = await res.json();
     if(!Array.isArray(rows)) return;
     const map={}; rows.forEach(r=>map[r.key]=r.value);
-    const stages=['nominations','shortlisting','voting','awards'];
     const status=map.cycle_status;
-    if(!stages.includes(status)) return; // draft/completed → تبقى البطاقة الافتراضية "انتظرونا قريباً"
 
-    const labels={nominations:'الترشيح',shortlisting:'القائمة المختصرة',voting:'التصويت',awards:'الجائزة'};
+    const wallBox = document.getElementById('wall-teaser-body');
+    if(!wallBox) return;
+
+    if(status==='awards' || status==='preparing'){
+      wallBox.innerHTML = `<img src="teaser.png" alt="قريباً" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`;
+      wallBox.style.padding='0';
+      wallBox.style.minHeight='260px';
+      const badge = document.getElementById('cycle-badge');
+      const labels={awards:'اختيار الجائزة',preparing:'التحضير لإعلان الفائز'};
+      document.getElementById('cycle-badge-text').textContent = `المرحلة الحالية: ${labels[status]}`;
+      badge.style.display = 'flex';
+      return;
+    }
+
+    const stages=['nominations','shortlisting','voting'];
+    if(!stages.includes(status)) return;
+
+    const labels={nominations:'الترشيح',shortlisting:'القائمة المختصرة',voting:'التصويت'};
     const shortDesc={
       nominations:'باب الترشيح مفتوح الآن',
       shortlisting:'جاري مراجعة القائمة المختصرة',
       voting:'اللجنة في مرحلة التصويت النهائي',
-      awards:'جاري التحضير لإعلان الفائز'
     };
     const curIdx = stages.indexOf(status);
 
@@ -630,8 +644,7 @@ async function loadCycleStatus(){
       return `<span class="teaser-dot ${cls}"></span>`;
     }).join('');
 
-    const wallBox = document.getElementById('wall-teaser-body');
-    if(wallBox) wallBox.innerHTML = `
+    wallBox.innerHTML = `
       <div class="icon">✨</div>
       <div class="t1">انتظرونا قريباً</div>
       <div class="t2">المكرَّم القادم في جدار الأثر</div>
