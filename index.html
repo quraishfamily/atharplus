@@ -652,11 +652,11 @@ async function loadCycleStatus(){
 const api=async(path,opts={})=>{
   const res=await fetch(`${SUPA_URL}/rest/v1/${path}`,{headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json','Prefer':opts.prefer??'return=representation',...opts.headers},...opts});
   if(!res.ok){console.error(path,res.status,await res.text());return null;}
-  const t=await res.text();return t?JSON.parse(t):null;
+  const t=await res.text();return t?JSON.parse(t):true;
 };
 const db={
   get:(t,q='')=>api(`${t}${q?'?'+q:''}`),
-  post:(t,b)=>api(t,{method:'POST',body:JSON.stringify(b)}),
+  post:(t,b)=>api(t,{method:'POST',body:JSON.stringify(b),prefer:'return=minimal'}),
   patch:(t,q,b)=>api(`${t}?${q}`,{method:'PATCH',body:JSON.stringify(b)}),
   del:(t,q)=>api(`${t}?${q}`,{method:'DELETE',prefer:''}),
 };
@@ -849,7 +849,8 @@ async function submitComment(){
   const name=document.getElementById('c-name').value.trim();const text=document.getElementById('c-text').value.trim();
   if(!name){alert('الرجاء كتابة اسمك');return;}if(!text&&!currentRating){alert('الرجاء كتابة تعليق أو اختيار تقييم');return;}
   if(!(window.turnstile&&turnstile.getResponse(document.getElementById('ts-comment')))){alert('الرجاء إكمال التحقق قبل الإرسال');return;}
-  await db.post('comments',{article_id:currentArticleId,author:name,body:text,rating:currentRating,approved:false});
+  const ok=await db.post('comments',{article_id:currentArticleId,author:name,body:text,rating:currentRating,approved:false});
+  if(!ok){showNotif('⚠️ تعذّر إرسال التعليق، حاول مرة أخرى');return;}
   document.getElementById('c-name').value='';document.getElementById('c-text').value='';setRating(0);
   if(window.turnstile)turnstile.reset(document.getElementById('ts-comment'));
   document.getElementById('c-btn').disabled=true;
@@ -860,7 +861,8 @@ async function submitNomination(){
   if(!name){alert('الرجاء كتابة اسم المرشَّح');return;}if(!reason){alert('الرجاء كتابة سبب الترشيح');return;}
   if(!(window.turnstile&&turnstile.getResponse(document.getElementById('ts-nom')))){alert('الرجاء إكمال التحقق قبل الإرسال');return;}
   const btn=document.getElementById('nom-btn');btn.disabled=true;btn.textContent='جاري الإرسال...';
-  await db.post('nominations',{name,field:document.getElementById('nom-field').value.trim(),reason,submitted_by:document.getElementById('nom-by').value.trim(),phone:document.getElementById('nom-phone').value.trim()});
+  const ok=await db.post('nominations',{name,field:document.getElementById('nom-field').value.trim(),reason,submitted_by:document.getElementById('nom-by').value.trim(),phone:document.getElementById('nom-phone').value.trim()});
+  if(!ok){btn.disabled=false;btn.textContent='إرسال الترشيح';showNotif('⚠️ تعذّر إرسال الترشيح، حاول مرة أخرى');return;}
   ['nom-name','nom-field','nom-reason','nom-by','nom-phone'].forEach(id=>document.getElementById(id).value='');
   if(window.turnstile)turnstile.reset(document.getElementById('ts-nom'));
   btn.disabled=true;btn.textContent='إرسال الترشيح';showNotif('✓ تم إرسال الترشيح، شكرًا لك');
@@ -870,7 +872,8 @@ async function submitContact(){
   if(!name){alert('الرجاء كتابة اسمك');return;}if(!email){alert('الرجاء كتابة بريدك الإلكتروني');return;}if(!msg){alert('الرجاء كتابة رسالتك');return;}
   if(!(window.turnstile&&turnstile.getResponse(document.getElementById('ts-contact')))){alert('الرجاء إكمال التحقق قبل الإرسال');return;}
   const btn=document.getElementById('ct-btn');btn.disabled=true;btn.textContent='جاري الإرسال...';
-  await db.post('contact_messages',{name,email,phone:document.getElementById('ct-phone').value.trim(),message:msg});
+  const ok=await db.post('contact_messages',{name,email,phone:document.getElementById('ct-phone').value.trim(),message:msg});
+  if(!ok){btn.disabled=false;btn.textContent='إرسال الرسالة';showNotif('⚠️ تعذّر إرسال الرسالة، حاول مرة أخرى');return;}
   ['ct-name','ct-email','ct-phone','ct-msg'].forEach(id=>document.getElementById(id).value='');
   if(window.turnstile)turnstile.reset(document.getElementById('ts-contact'));
   btn.disabled=true;btn.textContent='إرسال الرسالة';showNotif('✓ تم إرسال رسالتك، سنتواصل معك قريبًا');
