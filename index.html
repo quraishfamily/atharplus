@@ -279,11 +279,12 @@ label{font-size:.82rem;color:var(--text-muted);font-weight:700}
 .btn-submit{background:var(--gold);color:#FDFAF4;width:100%;padding:13px;border-radius:8px;font-family:'Tajawal',sans-serif;font-weight:700;font-size:1rem;border:none;cursor:pointer;transition:all .2s}
 .btn-submit:hover{background:var(--gold-light)}
 .btn-submit:disabled{opacity:.5;cursor:not-allowed}
-.contact-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem}
+.contact-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
 .contact-card{background:var(--dark2);border-radius:10px;border:1px solid rgba(26,102,68,.12);padding:1.2rem;display:flex;align-items:center;gap:12px}
 .cc-icon{font-size:1.4rem}
 .cc-label{font-size:.73rem;color:var(--text-muted);margin-bottom:2px}
 .contact-card a{color:var(--gold);font-size:.88rem;text-decoration:none}
+.cc-desc{font-size:.72rem;color:var(--text-muted);margin-top:4px;line-height:1.5}
 footer{background:#2C1A0E;border-top:1px solid rgba(26,102,68,.12)}
 .footer-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:2rem;padding:3rem 2rem 2rem}
 .f-logo{font-size:1.5rem;font-weight:800;color:#C5A03C;margin-bottom:.6rem}
@@ -578,6 +579,7 @@ footer{background:#2C1A0E;border-top:1px solid rgba(26,102,68,.12)}
   <div class="form-page">
     <div class="sec-header"><div class="sec-title">تواصل <span class="gold">معنا</span></div><div class="divider"></div><div class="sec-desc">نسعد بتواصلك لأي استفسار أو اقتراح</div></div>
     <div class="contact-cards">
+      <div class="contact-card"><div class="cc-icon">💬</div><div><div class="cc-label">قناة واتساب</div><a href="https://chat.whatsapp.com/HB7b7onOdLmFPcpqwgsDzv" target="_blank">انضم الآن</a><div class="cc-desc">لتصلكم آخر الأخبار ولتكونوا أول من يعلم عن الفائزين</div></div></div>
       <div class="contact-card"><div class="cc-icon">📷</div><div><div class="cc-label">إنستجرام</div><a href="https://www.instagram.com/athar.plus.safwa?igsh=eHIwbW01ZXN2bGt1" target="_blank">@athar.plus.safwa</a></div></div>
       <div class="contact-card"><div class="cc-icon">▶️</div><div><div class="cc-label">يوتيوب</div><a href="https://youtube.com/@atharplussafwa?si=XEgSt0FT7CzTBhbt" target="_blank">@atharplussafwa</a></div></div>
       <div class="contact-card"><div class="cc-icon">✉️</div><div><div class="cc-label">البريد الإلكتروني</div><a href="mailto:athar.plus.safwa@gmail.com">athar.plus.safwa@gmail.com</a></div></div>
@@ -612,30 +614,16 @@ async function loadCycleStatus(){
     const rows = await res.json();
     if(!Array.isArray(rows)) return;
     const map={}; rows.forEach(r=>map[r.key]=r.value);
+    const stages=['nominations','shortlisting','voting','awards'];
     const status=map.cycle_status;
+    if(!stages.includes(status)) return; // draft/completed → تبقى البطاقة الافتراضية "انتظرونا قريباً"
 
-    const wallBox = document.getElementById('wall-teaser-body');
-    if(!wallBox) return;
-
-    if(status==='awards' || status==='preparing'){
-      wallBox.innerHTML = `<img src="teaser.png" alt="قريباً" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`;
-      wallBox.style.padding='0';
-      wallBox.style.minHeight='260px';
-      const badge = document.getElementById('cycle-badge');
-      const labels={awards:'اختيار الجائزة',preparing:'التحضير لإعلان الفائز'};
-      document.getElementById('cycle-badge-text').textContent = `المرحلة الحالية: ${labels[status]}`;
-      badge.style.display = 'flex';
-      return;
-    }
-
-    const stages=['nominations','shortlisting','voting'];
-    if(!stages.includes(status)) return;
-
-    const labels={nominations:'الترشيح',shortlisting:'القائمة المختصرة',voting:'التصويت'};
+    const labels={nominations:'الترشيح',shortlisting:'القائمة المختصرة',voting:'التصويت',awards:'الجائزة'};
     const shortDesc={
       nominations:'باب الترشيح مفتوح الآن',
       shortlisting:'جاري مراجعة القائمة المختصرة',
       voting:'اللجنة في مرحلة التصويت النهائي',
+      awards:'جاري التحضير لإعلان الفائز'
     };
     const curIdx = stages.indexOf(status);
 
@@ -644,7 +632,8 @@ async function loadCycleStatus(){
       return `<span class="teaser-dot ${cls}"></span>`;
     }).join('');
 
-    wallBox.innerHTML = `
+    const wallBox = document.getElementById('wall-teaser-body');
+    if(wallBox) wallBox.innerHTML = `
       <div class="icon">✨</div>
       <div class="t1">انتظرونا قريباً</div>
       <div class="t2">المكرَّم القادم في جدار الأثر</div>
