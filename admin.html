@@ -781,7 +781,7 @@ async function loadAnalytics(){
   const maxDay = Math.max(...dailyEntries.map(([,v])=>v),1);
   document.getElementById('daily-chart').innerHTML = dailyEntries.map(([date,cnt])=>`
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px" title="${date}: ${cnt} مشاهدة">
-      <div style="width:100%;background:rgba(201,162,39,.15);border-radius:3px 3px 0 0;height:${Math.max((cnt/maxDay*80),2)}px;transition:height .5s;background:linear-gradient(to top,var(--gold-dark),var(--gold))"></div>
+      <div style="width:100%;border-radius:3px 3px 0 0;height:${Math.max((cnt/maxDay*80),3)}px;transition:height .5s;background:linear-gradient(to top,var(--gold),var(--gold-light))"></div>
       <div style="font-size:.55rem;color:var(--text-muted);transform:rotate(-45deg);white-space:nowrap">${date.slice(5)}</div>
     </div>`).join('');
 }
